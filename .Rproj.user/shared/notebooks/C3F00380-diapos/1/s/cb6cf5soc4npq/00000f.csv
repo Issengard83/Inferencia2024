@@ -1,0 +1,21 @@
+"0","data <- read_csv2(""enterobacterias.txt"")"
+"2","[36mℹ[39m Using [34m[34m""','""[34m[39m as decimal and [34m[34m""'.'""[34m[39m as grouping mark. Use `read_delim()` for more control.
+"
+"2","[1mRows: [22m[34m60[39m [1mColumns: [22m[34m7[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m───────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "";""
+[31mchr[39m (1): tratamiento
+[32mdbl[39m (6): enterobacterias, dias_almacenamiento, histamina, tiramina, putrescina, cadaver..."
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","data |> "
+"0","  ggplot(mapping = aes(x = enterobacterias)) +"
+"0","  "
+"0","  geom_histogram(fill = pal[3], bins = 15) +"
+"0","  "
+"0","  labs(x = ""Enterobacterias (ug/g)"") +"
+"0","  "
+"0","  theme_minimal() +"
+"0","  "
+"0","  theme(axis.text = element_text(size = 12))"

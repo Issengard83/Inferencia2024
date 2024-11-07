@@ -1,0 +1,90 @@
+#Carga datos----
+install.load::install_load("tab","reshape2","ggplot2","RColorBrewer")
+
+DF1 = read.csv("./KAP/EncuestaV3_final_v9TR.csv")[,c(1:34,143)]
+DF1$localidad = factor(DF1$localidad,levels = c("La Vuelta del Paraguayo","Colastiné Sur","Los Zapallos"),
+                     labels = c("VP","CS","LZ"))
+
+#Tema personalizado----
+theme = theme_light()+theme(axis.text.x = element_text(size=12),
+            axis.title.x=element_text(size=12,face = "bold"),
+            axis.text.y = element_text(size=12), 
+            axis.title.y=element_text(size=12,face = "bold"),
+            legend.position="bottom",
+            legend.title=element_blank(),
+            legend.spacing.x = unit(.25, 'cm'),
+            legend.text = element_text(size = 10, face = "bold"),
+            plot.title = element_blank()) 
+
+tabmeans(DF1$localidad,DF1$practicas)
+tabfreq(NULL,DF1$p1.sexo)
+
+#Tabla para prácticas riesgo x sexo----
+DF1[,c("p4.vaisla","p5.nocheisla","p6.charcos","p7.mojapies", "p9.usaagua","p11.nada")] = 
+  lapply( DF1[,c("p4.vaisla","p5.nocheisla","p6.charcos","p7.mojapies", 
+                 "p9.usaagua","p11.nada")],factor,levels = c(1,0)
+)
+
+
+tab = data.frame(
+  tabmulti(DF1, "p1.sexo",c("p4.vaisla","p5.nocheisla","p6.charcos",
+                            "p7.mojapies", "p9.usaagua","p11.nada"),
+           p.include = F, freq.text.label = "none", freq.parenth = "none",
+           compress = T, n.headings = F, overall.column = T, cell = "col.percent",
+           ynames = c("EII","EPI","EPAE","EMAE","EUAR","ENAR"),
+          variable.colname = "act")
+)
+
+tab[,2:4] = lapply(tab[,2:4],function(x) as.numeric(as.character(x)))
+
+tab = melt(tab,id.vars = 1)
+
+levels(tab$act) = c("ENAR","EUAR","EMAE","EPAE","EPI","EII")
+
+tab$variable = factor(tab$variable, levels = c("F","M","Overall"),
+                      #labels = c("Female","Male","Total"),
+                      labels = c ("Mujeres", "Hombres", "Total"))
+
+#Gráfico----
+colors = c("#FC8D62","#8DA0CB","#66C2A5")
+  
+#colors = c("#CC79A7","#56B4E9","#E69F00")
+
+ggplot(tab,aes(x = act,y = value)) + 
+  geom_bar(aes(fill = variable),stat = "identity",position = "dodge")+
+  scale_x_discrete(#name="Activities avoided",
+                   name= "",
+                   # labels=c("swimming in river/flood water","using river/flood water", "getting wet with flood water",
+                   #          "walking through flood water","spending the night at the island","going to the island")
+                    labels=c("nadar en el río","usar agua del río","mojarse los pies en charcos",
+                            "atravesar charcos","pernoctar en la isla","ir a la isla")
+  
+                   )+ 
+  coord_flip()+
+  scale_fill_manual(values=colors)+
+  scale_y_continuous(name = "Freq (%)",limits = c(0,100))+
+  theme
+
+ggsave("C:/Users/Issengard/Google Drive/Doctorado Veterinaria/TESIS DOCTORAL/FIGS/figk4.png",units = "cm",dpi = 300)
+
+#Crea tabla----
+tab=data.frame(tab::tabmulti(DF1,"localidad",c("p2.pescar","p2.cazar","p2.desmalezar","p2.recolectarlena"),
+                             p.include = F,freq.text.label = "none",
+                             ynames = c("Fishing","Hunting","Gardening","Coll. firewood")))
+
+#tab[,2:5]=lapply(tab[,2:5],function(x) as.numeric(as.character(x)))
+
+DF=subset(DF1,DF1$p2.pescar!="Nunca"|DF1$p2.cazar!="Nunca"|DF1$p2.recolectarlena!="Nunca"|DF1$p2.desmalezar!="Nunca")
+DF$calzado.cat=ifelse(grepl("^descalzo$|No esp",DF$p3.calzado),-2,ifelse(
+  grepl("No rea|vib|pesc|^botas$",DF$p3.calzado),0,-1))
+tab::tabfreq(NULL,DF$calzado.cat)
+
+#Tablas score practicass----
+shapiro.test(DF1$practicas)
+DF1$practicas=DF1$practicas/max(DF1$practicas)*100
+tab::tabmeans(DF1$localidad,DF1$practicas)
+tab::tabmedians(DF1$localidad,DF1$practicas,parenth = "q1q3")
+dunn.test::dunn.test(DF1$practicas,DF1$localidad)
+tukey=glht(lm(practicas~localidad,data=DF1),linfct=mcp(localidad="Tukey"))
+confint(tukey)
+plot(confint(tukey))

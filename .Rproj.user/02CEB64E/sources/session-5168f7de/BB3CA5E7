@@ -1,0 +1,26 @@
+{
+    "id": "BB3CA5E7",
+    "path": "G:/Mi unidad/DATA/INE_COVID_PAMI/script_gls_gam_imputed.R",
+    "project_path": null,
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1730983566158.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "140,39",
+        "scrollLine": "132"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1716917760,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1716917760,
+    "read_only": false,
+    "read_only_alternatives": []
+}

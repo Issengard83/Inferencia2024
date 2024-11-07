@@ -1,0 +1,1691 @@
+---
+title: Presentación
+format: 
+  revealjs: 
+    title-slide-attributes: 
+      data-background-image: fondo_ppt_title.png
+    chalkboard: true
+    logo: logos_ine.png
+    incremental: true
+    slide-number: true
+    center: false
+    css: custom.css
+---
+
+```{r}
+#| echo: false
+# Configuración global
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.align = "center"
+                    )
+
+# Paquetes necesarios
+pacman::p_load(
+  scico,
+  flextable,
+  patchwork,
+  tidyverse
+)
+
+# Paleta colorblind
+pal <- scico(n = 8, palette = "tokyo")
+```
+
+## INFERENCIA ESTADÍSTICA {.center style="text-align: center;"}
+
+:::: {style="margin-top: 1.5em;"}
+Docente: Dra. Tamara Ricardo
+
+::: {style="margin-bottom: 1.5em;"}
+Curso de Epidemiología: Nivel Intermedio
+:::
+
+![](logos_ine.png){fig-align="center" width="30%"}
+::::
+
+## OBJETIVOS
+
+-   Situar a la disciplina **estadística** en el campo de la epidemiología.
+
+-   Describir nociones básicas de la **estadística inferencial** de importancia epidemiológica:
+
+    -   Estimación de **parámetros poblacionales**.
+
+    -   **Contrastes de hipótesis**.
+
+## INTRODUCCIÓN
+
+-   Cuando trabajamos en Epidemiología suele ser necesario investigar:
+
+    -   Cuál es la **frecuencia** de una enfermedad o evento de salud.
+
+    -   Su **distribución** en una **población** (lugar y tiempo).
+
+    -   Cuáles son los **determinantes** del evento observado.
+
+-   Para lograrlo, deben incorporarse conceptos y métodos de la **bioestadística**.
+
+------------------------------------------------------------------------
+
+::: r-fit-text
+-   En la actualidad, podemos dividir la bioestadística en dos ramas:
+:::
+
+::: fragment
+```{dot}
+digraph {
+  node [fontname = "Calibri:bold", 
+  fontcolor = "white"];
+  
+  edge[color = "#1B0D33"];
+  
+  bgcolor = transparent;
+  rankdir = LR;
+
+Estadística [
+  shape = diamond, 
+  style = filled, 
+  color = "#1B0D33"];
+  
+a0 [shape = Mrecord,
+  style = filled,
+  color = "#562948",
+  label = "Descriptiva"];
+
+b0 [shape = Mrecord,
+  label = "Inferencial",
+  style = filled,
+  color = "#81A95E",
+  fontcolor = "black"];
+
+  subgraph cluster_0 {
+    color = "#562948"
+    node [style = filled, 
+    shape = Mrecord,
+    color = "#6E4E4F"];
+    edge [color = "#562948"];
+    
+    a0 -> a1 
+    a0 -> a2 
+    a0 -> a3 
+    a0 -> a4
+  }
+
+  subgraph cluster_1 {
+    color = "#81A95E"
+    node [style = filled, 
+    shape = Mrecord,
+    color = "#AEE296",
+    fontcolor = "black"];
+    edge [color = "#81A95E"];
+    b0 -> b1
+    b0 -> b2 
+  }
+  
+a1 [label = "Análisis \n exploratorio \n de datos"]
+a2 [label = "Medidas de \n dispersión"]
+a3 [label = "Medidas de \n tendencia central"]
+a4 [label = "Medidas de \n frecuencia"]
+
+b1 [label = "Tests de \n hipótesis"]
+b2 [label = "Estimación de \n parámetros"]
+
+  Estadística -> a0;
+  Estadística -> b0; 
+  
+}
+```
+:::
+
+## ESTADÍSTICA DESCRIPTIVA {.center style="text-align: center; font-size: 1.5em;"}
+
+------------------------------------------------------------------------
+
+### Estadística descriptiva
+
+Tomando como base a la tríada **tiempo-espacio-persona** intenta detectar y caracterizar:
+
+-   ¿Qué **población o subgrupos** desarrollan la enfermedad o evento de salud?
+
+-   ¿**Quienes** lo hacen con mayor frecuencia?
+
+-   ¿Cómo varía la **frecuencia** del evento a lo largo del **tiempo** y/o en poblaciones con diferentes características?
+
+-   ¿En qué **áreas geográficas** es más o menos frecuente dicho evento?
+
+------------------------------------------------------------------------
+
+![](images/estadistico_parametro.png){fig-align="center" width="65%"}
+
+------------------------------------------------------------------------
+
+```{dot}
+digraph{
+    node[shape = cds,
+    style = filled,
+    fontname = "Calibri:bold",
+    fontcolor = "white",
+    fontsize = 10];
+    bgcolor = transparent;
+    
+    Población[color = "#1B0D33"];
+    
+    Muestra[color = "#562948"];
+    
+    Datos[color = "#6E4E4F"];
+    
+    a[style = wedged, 
+    shape = plaintext,
+    label = "Conjunto completo \n de todos los elementos \n que se van a estudiar",
+    fontsize = 8,
+    fontcolor = "#1B0D33"];
+    
+    b[style = wedged, 
+    shape = plaintext,
+    label = "Subconjunto de \n miembros seleccionados \n de una población",
+    fontsize = 8,
+    fontcolor = "#562948"];
+    
+    c[style = wedged,  
+    shape = plaintext,
+    label = "Observaciones \n recolectadas de \n la muestra",
+    fontsize = 8,
+    fontcolor = "#6E4E4F"];
+    
+    Población -> a [color = "#1B0D33"]
+    
+    Muestra -> b [color = "#562948"]
+    
+    Datos -> c [color = "#6E4E4F"]
+    
+   }
+```
+
+::: {style="font-size: 0.85em;"}
+-   **Estadístico**: Medición numérica que describe algunas características de una muestra.
+-   **Parámetro**: Medición numérica que describe algunas características de una población.
+:::
+
+------------------------------------------------------------------------
+
+**Ejemplo:** Queremos estimar la frecuencia de anticuerpos anti *Leptospira* spp. en perros domiciliados de la ciudad de Santa Fe, Argentina.
+
+::: {style="font-size: 0.85em;"}
+-   **Población:** Todos los perros domiciliados residentes en la ciudad de Santa Fe, Argentina.
+
+-   **Muestra:** Perros domiciliados que acuden a la campañas municipales de castración y vacunación antirrábica.
+
+-   **Datos o variables:** Características del animal (sexo, edad, condición corporal), hábitos, exposición a fuentes ambientales, contacto con animales infectados, presencia de anticuerpos anti-*Leptospira*, etc.
+
+-   **Estadísticos:** media, varianza, desviación estándar.
+
+-   **Parámetros:** media poblacional, varianza poblacional, desviación estándar poblacional.
+:::
+
+------------------------------------------------------------------------
+
+#### ¿A qué llamamos **variables**?
+
+::: {style="font-size: 0.85em;"}
+-   Todos los aspectos del ambiente que nos rodea pueden considerarse como **datos** o **variables** y presentan distintas características, valores y escalas de medición.
+:::
+
+::: fragment
+```{dot}
+ digraph {
+      node[fontname = "Calibri:bold",
+      fontcolor = "white"]
+      bgcolor = transparent;
+      
+        a [style = filled, 
+        color = "#1B0D33",
+        shape=diamond,
+        label = "Variables"]
+        
+        b [style = filled, 
+        shape = box,
+        color = "#562948",
+        label = "Cualitativas"]
+        
+        c[style = filled, 
+        color = "#81A95E" ,
+        shape = box,
+        label = "Cuantitativas",
+        fontcolor = "black"]
+        
+        subgraph cluster_1{
+        color = "#562948"
+        node[shape = Mrecord,
+        style = filled,
+        color = "#6E4E4F"]
+        
+        edge[style = tapered, 
+        color = "#562948"]
+        
+       b -> Nominales;
+       b -> Ordinales;
+        }
+       
+       subgraph cluster_2{
+           color = "#81A95E"
+        node[shape = Mrecord,
+        style = filled,
+        color = "#AEE296",
+        fontcolor = "black"]
+        
+        edge[style = tapered, 
+        color = "#81A95E"]
+        
+        c -> Continuas;
+        c -> Discretas;
+           
+       }
+        
+        a -> b [color = "#1B0D33"]
+        a -> c [color = "#1B0D33"]
+      
+    }
+```
+:::
+
+------------------------------------------------------------------------
+
+#### Ejemplos de variables
+
+:::::::: columns
+:::: {.column width="50%"}
+![Precipitaciones](images/rain_17102963.gif){style="text-align: center;" fig-align="center" width="40%"}
+
+::: fragment
+![Temperatura ambiente](images/hot_17103056.gif){style="text-align: center;" fig-align="center" width="40%"}
+:::
+::::
+
+::::: {.column width="50%"}
+::: fragment
+![Fenómenos climáticos](images/floods_17103139.gif){style="text-align: center;" fig-align="center" width="40%"}
+:::
+
+::: fragment
+![Estacionalidad](images/seasons_17484830.gif){style="text-align: center;" fig-align="center" width="40%"}
+:::
+:::::
+::::::::
+
+::: footer
+íconos por [Freepik](https://www.freepik.com/)
+:::
+
+------------------------------------------------------------------------
+
+#### Ejemplos de variables
+
+:::::::: columns
+:::: {.column width="50%"}
+![Sexo biológico y/o género](images/heterosexual_15595856.gif){fig-align="center" style="text-align: center;" width="40%"}
+
+::: fragment
+![Grupo etario](images/generation_12990584.gif){style="text-align: center;" fig-align="center" width="40%"}
+:::
+::::
+
+::::: {.column width="50%"}
+::: fragment
+![Nivel educativo](images/student_16675754.gif){fig-align="center" style="text-align: center;" width="40%"}
+:::
+
+::: fragment
+![Ocupación](images/worker_15586087.gif){fig-align="center" style="text-align: center;" width="40%"}
+:::
+:::::
+::::::::
+
+::: footer
+íconos por [Freepik](https://www.freepik.com/)
+:::
+
+------------------------------------------------------------------------
+
+#### Ejemplos de variables
+
+:::::::: columns
+:::: {.column width="50%"}
+![Abundancia y diversidad de hospedadores](images/animals_17904105.gif){fig-align="center" style="text-align: center;" width="40%"}
+
+::: fragment
+![Características del patógeno](images/gut-microbiota_12034706.gif){fig-align="center" style="text-align: center;" width="40%"}
+:::
+::::
+
+::::: {.column width="50%"}
+:::: fragment
+![Signos y síntomas](images/sneeze_16678367.gif){fig-align="center" style="text-align: center;" width="40%"}
+
+::: fragment
+![Parámetros de laboratorio](images/test-tube_11651618.gif){fig-align="center" style="text-align: center;" width="40%"}
+:::
+::::
+:::::
+::::::::
+
+::: footer
+íconos por [Freepik](https://www.freepik.com/)
+:::
+
+------------------------------------------------------------------------
+
+### Medidas de frecuencia
+
+::::: columns
+::: {.column width="25%"}
+![](images/analytics_7253210.png){width="80%"}
+:::
+
+::: {.column width="75%"}
+#### **Proporción**
+
+-   Frecuencia con la que ocurre un evento en una población.
+
+-   Se expresa en porcentajes (%).
+
+-   Ejemplos: prevalencia, mortalidad, letalidad.
+:::
+:::::
+
+::: footer
+íconos por [Freepik](https://www.freepik.com/)
+:::
+
+------------------------------------------------------------------------
+
+::::: columns
+::: {.column width="25%"}
+$$
+\frac{a/b}{c/d}
+$$
+:::
+
+::: {.column width="75%"}
+#### **Razón**
+
+-   Relación aritmética entre dos eventos en una misma población o el mismo evento en dos poblaciones.
+
+-   Se calcula dividiendo el evento A por el evento B.
+
+-   Se expresa en magnitudes.
+
+-   Ejemplos: odds-ratio, riesgo relativo.
+:::
+:::::
+
+------------------------------------------------------------------------
+
+::::: columns
+::: {.column width="25%"}
+![](images/market-growth_12771741.png){width="80%"}
+:::
+
+::: {.column width="75%"}
+#### **Tasa**
+
+-   Magnitud de cambio de una variable por unidad de tiempo en relación al tamaño de la población expuesta.
+
+-   Se expresa en potencias de 10.
+
+-   Ejemplos: tasa de incidencia.
+:::
+:::::
+
+::: footer
+íconos por [Freepik](https://www.freepik.com/)
+:::
+
+------------------------------------------------------------------------
+
+### Medidas de tendencia central
+
+:::::: columns
+::: {.column width="25%"}
+![](images/chart_6813627.png){width="80%"}
+:::
+
+:::: {.column width="75%"}
+#### **Media aritmética**
+
+::: {style="font-size: 0.85em;"}
+-   Está dada por la suma de los valores de una variable, dividida por el número total de observaciones.
+
+-   La media poblacional se calcula como:
+
+    $$
+    \mu = \frac{\sum^N_{i=1} x_i}{N}
+    $$
+
+-   Mientras que la media muestral está dada por:
+
+    $$
+    \bar{x} = \frac{\sum^n_{i=1} x_i}{n}
+    $$
+:::
+::::
+::::::
+
+::: footer
+íconos por [Freepik](https://www.freepik.com/)
+:::
+
+------------------------------------------------------------------------
+
+#### **Mediana (Me)**
+
+-   Corresponde al centro de la distribución en una variable con datos ordenados.
+
+-   Si el número de observaciones es par, la mediana es el promedio de los dos valores centrales.
+
+-   Se calcula como:
+
+    $$
+    pos(Me) = \frac{n+1}{2}
+    $$
+
+#### Moda {.fragment}
+
+-   Valor o valores que aparecen con mayor frecuencia en un conjunto de datos.
+
+------------------------------------------------------------------------
+
+### Sesgo
+
+-   Desviación sistemática que ocurre en una estimación o en los resultados de un estudio, en relación con el verdadero valor o parámetro poblacional.
+
+-   Los datos están sesgados cuando se distribuyen de forma asimétrica hacia uno de los lados.
+
+-   El sesgo en los resultados estadísticos puede llevar a:
+
+    -   Conclusiones incorrectas sobre relaciones causales.
+
+    -   Subestimación o sobreestimación de un efecto o resultado.
+
+    -   Falta de generalización de los resultados a la población total.
+
+-   Puede detectarse comparando la **media**, la **mediana** y la **moda.**
+
+------------------------------------------------------------------------
+
+#### Distribución sesgada a la izquierda
+
+```{r}
+# Seed
+set.seed(123)
+
+# Calcular moda
+calc_mode <- function(x) {
+  dens <- density(x)
+  dens$x[which.max(dens$y)]
+}
+
+## Sesgo a la izquierda
+# datos
+data <- tibble(x = -rlnorm(1000, meanlog = 0, sdlog = 1) + 100)
+
+# plot
+data|> 
+  
+  ggplot(mapping = aes(x = x)) +
+  
+  geom_density(fill = pal[7], color = "black", alpha = 0.5) +
+  
+  geom_vline(xintercept = mean(data$x), lwd = .75, color = pal[1]) +
+  
+  geom_vline(xintercept = median(data$x), lwd = 1,
+             linetype = "dotted", color = pal[2]) +
+  
+  geom_vline(xintercept = calc_mode(data$x), lwd = 1,
+             linetype = "dashed", color = pal[3]) +
+  
+  scale_x_continuous(breaks = c(mean(data$x), 
+                                median(data$x), 
+                                calc_mode(data$x)),
+                     labels = c("Media", "Mediana", "Moda")) +
+  
+  labs(x = "", y = "") +
+  
+  theme_minimal() +
+  
+  theme(axis.text.x = element_text(angle = 90, face = "bold", 
+                                   size = 10, vjust = .5, hjust = .5))
+```
+
+-   La media y mediana están a la **izquierda** de la moda.
+
+------------------------------------------------------------------------
+
+#### Distribución sesgada a la derecha
+
+```{r}
+# Seed
+set.seed(123)
+
+## Sesgo a la derecha
+# datos
+data <- tibble(x = rlnorm(1000, meanlog = 0, sdlog = 1))
+
+# plot
+data|> 
+  
+  ggplot(mapping = aes(x = x)) +
+  
+  geom_density(fill = pal[7], color = "black", alpha = 0.5) +
+  
+  geom_vline(xintercept = mean(data$x), lwd = .75, color = pal[1]) +
+  
+  geom_vline(xintercept = median(data$x), lwd = 1,
+             linetype = "dotted", color = pal[2]) +
+  
+  geom_vline(xintercept = calc_mode(data$x), lwd = 1,
+             linetype = "dashed", color = pal[3]) +
+  
+  scale_x_continuous(breaks = c(mean(data$x), 
+                                median(data$x), 
+                                calc_mode(data$x)),
+                     labels = c("Media", "Mediana", "Moda")) +
+  
+  labs(x = "", y = "") +
+  
+  theme_minimal() +
+  
+  theme(axis.text.x = element_text(angle = 90, face = "bold", 
+                                   size = 10, vjust = .5, hjust = .5))
+```
+
+-   La media y mediana están a la **derecha** de la moda.
+
+------------------------------------------------------------------------
+
+#### Distribución simétrica
+
+```{r}
+# Seed
+set.seed(123)
+
+## Sesgo a la derecha
+# datos
+data <- tibble(x = rnorm(1000, mean = 5, sd = 1))
+
+# plot
+data|> 
+  
+  ggplot(mapping = aes(x = x)) +
+  
+   geom_density(fill = pal[7], color = "black", alpha = 0.5) +
+  
+  geom_vline(xintercept = mean(data$x), lwd = .75, color = pal[1]) +
+  
+  scale_x_continuous(breaks = mean(data$x),
+                     labels = "Media = Mediana = Moda") +
+  
+  labs(x = "", y = "") +
+  
+  theme_minimal() +
+  
+  theme(axis.text.x = element_text(face = "bold", 
+                                   size = 10, vjust = .5, hjust = .5))
+```
+
+-   La media y mediana son **iguales** que la moda.
+
+------------------------------------------------------------------------
+
+### Medidas de dispersión
+
+#### **Desvío estándar**
+
+::: {style="font-size: 0.85em;"}
+-   Diferencia entre valor observado de una variable y su media.
+
+-   El desvío estándar poblacional se calcula como:
+
+    $$
+    \sigma = \sqrt{\frac{\sum(x_i -\mu)^2}{N}}
+    $$
+
+-   Mientras que el desvío muestral se calcula como:
+
+    $$
+    S = \sqrt{\frac{\sum(x_i -\bar{x})^2}{n-1}}
+    $$
+:::
+
+------------------------------------------------------------------------
+
+#### **Varianza**
+
+-   Promedio de los cuadrados de las distancias de los valores de una variable con respecto a su media.
+
+-   Se ve muy influida por la presencia valores extremos.
+
+-   Se calcula elevando al cuadrado el desvío estándar.
+
+------------------------------------------------------------------------
+
+#### **Error estándar (SE)**
+
+-   Representa en qué medida podrían variar las medias de todas las posibles muestras escogidas de una población.
+
+-   Se calcula como:
+
+    $$
+    SE = \frac{S}{\sqrt n}
+    $$
+
+------------------------------------------------------------------------
+
+#### **Rango intercuartil**
+
+-   Espectro en el que se encuentra la mediana de los datos.
+
+-   Se calcula como la diferencia entre los cuartiles del 25% (Q1) y 75% (Q3).
+
+------------------------------------------------------------------------
+
+## Análisis exploratorio de datos
+
+-   Proceso inicial de análisis de un conjunto de datos fundamental en investigación cuantitativa para obtener una comprensión general de la estructura de los datos.
+
+-   Tiene como objetivos:
+
+    -   Conocer la estructura y contenido de los datos
+
+    -   Identificar patrones y tendencias generales
+
+    -   Detectar valores atípicos y/o datos faltantes
+
+    -   Verificar suposiciones estadísticas
+
+------------------------------------------------------------------------
+
+#### Tipos de análisis exploratorio
+
+-   **Univariado:**
+
+    -   Estadísticos descriptivos:
+
+        -   medidas de tendencia central,
+
+        -   medidas de dispersión.
+
+    -   Gráficos:
+
+        -   histogramas,
+
+        -   gráficos de cajas (*boxplots*),
+
+        -   gráficos de violín.
+
+------------------------------------------------------------------------
+
+#### Histograma
+
+```{r}
+data <- read_csv2("enterobacterias.txt")
+
+data |> 
+  ggplot(mapping = aes(x = enterobacterias)) +
+  
+  geom_histogram(fill = pal[3], bins = 15) +
+  
+  labs(x = "Enterobacterias (ug/g)") +
+  
+  theme_minimal() +
+  
+  theme(axis.text = element_text(size = 12))
+```
+
+------------------------------------------------------------------------
+
+#### Boxplot
+
+```{r}
+data |> 
+  ggplot(mapping = aes(x = tratamiento, 
+                       y = enterobacterias,
+                       fill = tratamiento)) +
+  
+  geom_boxplot() +
+  
+  scale_fill_scico_d(palette = "tokyo") +
+  
+   labs(y = "Enterobacterias (ug/g)") +
+  
+  theme_minimal() +
+  
+  theme(axis.text = element_text(size = 12))
+```
+
+------------------------------------------------------------------------
+
+#### Gráfico de violín
+
+```{r}
+data |> 
+  ggplot(mapping = aes(x = tratamiento, y = enterobacterias,
+                       fill = tratamiento)) +
+  
+  geom_violin() +
+  
+  scale_fill_scico_d(palette = "tokyo") +
+  
+  labs(y = "Enterobacterias (ug/g)") +
+  
+  theme_minimal() +
+  
+  theme(axis.text = element_text(size = 12))
+```
+
+------------------------------------------------------------------------
+
+-   **Bivariado:**
+
+    -   Correlación.
+
+    -   Tablas de contingencia.
+
+    -   Gráficos:
+
+        -   *scatterplots*,
+
+        -   correlogramas,
+
+        -   gráficos de barras,
+
+        -   gráficos de líneas.
+
+<!-- -->
+
+-   **Multivariado:**
+
+    -   Análisis de componentes principales (PCA).
+
+    -   Gráficos de pares, gráficos de calor (*heatmaps*).Gráfico de barras
+
+------------------------------------------------------------------------
+
+#### *Scatterplot*
+
+```{r}
+data |> 
+  ggplot(mapping = aes(x = cadaverrina, y = enterobacterias)) +
+  
+  geom_point(color = pal[6]) +
+  
+  geom_smooth(method = "lm", se = F, color = pal[2]) +
+  
+  labs(y = "Enterobacterias (ug/g)",
+       x = "Cadaverrina") +
+  
+  theme_minimal()
+```
+
+------------------------------------------------------------------------
+
+#### Correlograma
+
+```{r}
+data |> 
+  select(-tratamiento) |> 
+  GGally::ggcorr(high = pal[2], low = pal[7], label = T)
+```
+
+------------------------------------------------------------------------
+
+#### Gráfico de barras
+
+```{r}
+data |> 
+  mutate(ent_cat = gtools::quantcut(enterobacterias)) |> 
+  
+  count(ent_cat, tratamiento) |> 
+  
+  ggplot(mapping = aes(x = ent_cat, y = n,
+                       fill = tratamiento)) +
+  
+  geom_bar(stat = "identity", position = "dodge") +
+  
+  scale_fill_scico_d(palette = "tokyo") +
+  
+  labs(x = "Enterobacterias (ug/g)") +
+  
+  theme_minimal()
+```
+
+------------------------------------------------------------------------
+
+#### Gráfico de líneas
+
+```{r}
+data |> 
+  ggplot(mapping = aes(x = dias_almacenamiento,
+                       y = enterobacterias,
+                       color = tratamiento)) +
+  
+  geom_smooth(method = "loess", se = F) +
+  
+  scale_color_scico_d(palette = "tokyo") +
+  
+  labs(y= "Enterobacterias (ug/g)",
+       x = "Días de almacenamiento") +
+  
+  theme_minimal()
+```
+
+## ESTADÍSTICA INFERENCIAL {.center style="text-align: center; font-size: 1.5em;"}
+
+------------------------------------------------------------------------
+
+### Estadística inferencial
+
+-   Intenta llegar a generalizaciones acerca de una **población** según resultados obtenidos a partir de una **muestra** extraída de la misma.
+
+-   Es decir, a partir de los **datos** de la muestra se calcula algún **estadístico** que permita aproximar un parámetro **poblacional**.
+
+------------------------------------------------------------------------
+
+#### Población y muestra
+
+-   En ciertos casos, como ser los censos, la **población muestreada** es la misma que la **población objetivo** y pueden hacerse inferencias directas.
+
+-   Lo más común es que esto no ocurra y haya que obtener una muestra representativa de la población de estudio empleando **procesos de aleatorización**.
+
+------------------------------------------------------------------------
+
+#### Algunos conceptos básicos
+
+-   **Variable aleatoria:**
+
+    -   Es aquella que tiene un solo valor numérico determinado por el azar, para cada resultado de un procedimiento.
+
+-   **Grados de libertad:**
+
+    -   Número de observaciones muestrales que son libres de variar después de haber impuesto ciertas restricciones a todos los valores de los datos.
+
+-   **Distribución de probabilidad:**
+
+    -   Distribución que indica la probabilidad de cada valor de la variable aleatoria.
+
+------------------------------------------------------------------------
+
+### Distribución muestral
+
+-   Distribución de **todos los valores posibles** que puede asumir un estadístico, calculados a partir de muestras del mismo tamaño, seleccionadas aleatoriamente de la misma población.
+
+-   Para que una distribución sea simétrica, el 95% de los datos deben estar a **±2 desviaciones estándar** del valor de la media.
+
+------------------------------------------------------------------------
+
+```{r}
+# Seed
+set.seed(123)
+
+## Sesgo a la derecha
+# datos
+data <- tibble(x = rnorm(1000, mean = 5, sd = 1))
+
+# plot
+data|> 
+  
+  ggplot(mapping = aes(x = x)) +
+  
+  geom_density(color = pal[7], fill = pal[7], alpha = .25) +
+  
+  # Líneas verticales
+  geom_vline(xintercept = mean(data$x), 
+             lwd = .75, color = pal[1]) +
+  
+  geom_vline(xintercept = mean(data$x) - sd(data$x), 
+             lwd = .75, color = pal[3], linetype = "dashed") +
+  
+  geom_vline(xintercept = mean(data$x) + sd(data$x), 
+             lwd = .75, color = pal[3], linetype = "dashed") +
+  
+  geom_vline(xintercept = mean(data$x) - 2*sd(data$x), 
+             lwd = .75, color = pal[4], linetype = "dotted") +
+  
+  geom_vline(xintercept = mean(data$x) + 2*sd(data$x), 
+             lwd = .75, color = pal[4], linetype = "dotted") +
+  
+  geom_vline(xintercept = mean(data$x) - 3*sd(data$x), 
+             lwd = .75, color = pal[6], linetype = "dotted") +
+  
+  geom_vline(xintercept = mean(data$x) + 3*sd(data$x), 
+             lwd = .75, color = pal[6], linetype = "dotted") +
+  
+  # Anotaciones
+  annotate(
+    "text", x = 5.5, y = 0.2,
+    label = "34%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 4.5, y = 0.2,
+    label = "34%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 6.5, y = 0.1,
+    label = "13,5%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 3.5, y = 0.1,
+    label = "13,5%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 7.5, y = 0.05,
+    label = "2,4%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 2.5, y = 0.05,
+    label = "2,4%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 8.5, y = 0.025,
+    label = "0,1%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  annotate(
+    "text", x = 1.5, y = 0.025,
+    label = "0,1%",
+    size = 6, 
+    color = "#2F2E4E") + 
+  
+  # Ejes
+  scale_x_continuous(breaks = c(mean(data$x),
+                                mean(data$x) + sd(data$x),
+                                mean(data$x) + 2*sd(data$x),
+                                mean(data$x) + 3*sd(data$x),
+                                mean(data$x) - sd(data$x),
+                                mean(data$x) - 2*sd(data$x),
+                                mean(data$x) - 3*sd(data$x)),
+                     labels = c(expression(bar(x)),
+                                expression(bar(x) ~ "+ s"),
+                                expression(bar(x) ~ "+ 2s"),
+                                expression(bar(x) ~ "+ 3s"),
+                                expression(bar(x) ~ "- s"),
+                                expression(bar(x) ~ "- 2s"),
+                                expression(bar(x) ~ "- 3s") 
+                                )) +
+  
+  labs(x = "", y = "") +
+  
+  theme_minimal() +
+  
+  theme(axis.text.x = element_text(face = "bold", 
+                                   size = 12, vjust = .5, hjust = .5))
+```
+
+::: {style="font-size: 0.75em;"}
+-   68% de los datos está dentro de 1 desvío estándar de $\bar{x}$.
+-   95% de los datos está dentro de 2 desvíos estándar de $\bar{x}$.
+-   99% de los datos está dentro de 3 desvíos estándar de $\bar{x}$.
+:::
+
+------------------------------------------------------------------------
+
+### Distribuciones continuas
+
+-   Distribuciones de probabilidad más utilizadas para datos continuos:
+
+    -   Distribución normal estándar o gaussiana.
+
+    -   Distribución Chi-cuadrado.
+
+    -   Distribución t de Student.
+
+------------------------------------------------------------------------
+
+#### Distribución normal estándar ($Z$)
+
+-   Definida por dos parámetros:
+
+    -   Media poblacional $\to \mu = 0$
+
+    -   Varianza poblacional $\to \sigma = 1$
+
+-   La gráfica de la distribución es simétrica y tiene forma de campana.
+
+-   El área bajo la curva de densidad es igual a 1.
+
+------------------------------------------------------------------------
+
+#### Distribución normal estándar ($Z$)
+
+```{r}
+#generate a normal distribution plot
+#tibble(x = c(-4, 4)) |> 
+tibble(x = seq(-4, 4, length.out = 100),
+       y = dnorm(x)) |> 
+  
+ggplot(aes(x = x, y = y)) +
+  
+  stat_function(fun = dnorm, 
+                color = pal[2], 
+                size = 1.5) +
+  
+  geom_vline(xintercept = 0, 
+             lty = 2) +
+  
+  annotate(
+    "text", x = 2.5, y = 0.3,
+    label = "Z == frac((x - mu), sigma)",
+    parse = TRUE,
+    size = 8, 
+    color = "#2F2E4E") + 
+  
+  scale_x_continuous(breaks = c(-3, -2, -1, 0, 1, 2, 3)) +
+  
+  labs(x = "Z-score", y = "") +
+  
+  theme_minimal() + 
+  theme(axis.text = element_text(face = "bold", size = 14))
+```
+
+------------------------------------------------------------------------
+
+#### Distribución t de Student ($t$)
+
+-   Definida por dos parámetros:
+
+    -   Media poblacional $\to \mu = 0$
+
+    -   Varianza poblacional $\to \sigma > 1$
+
+-   Tiene forma de campana pero refleja mayor variabilidad en muestras pequeñas.
+
+-   A medida que aumenta el tamaño muestral se aproxima a la normal.
+
+------------------------------------------------------------------------
+
+#### Distribución t de Student ($t$)
+
+```{r}
+# Crear una secuencia de valores de x
+x_values <- seq(-4, 4, length.out = 200)
+
+# Crear un data.frame con las densidades para varios grados de libertad
+tibble(
+  x = rep(x_values, times = 3),
+  density = c(dt(x_values, df = 1), dt(x_values, df = 5), dt(x_values, df = 10)),
+  df = factor(rep(c(1, 5, 10), each = 200))
+) |> 
+
+# plot
+ggplot(aes(x = x, y = density, color = df)) +
+  geom_line(size = 1.5) +
+  geom_vline(xintercept = 0, lty = 2) +
+  
+  annotate(
+    "text", x = 2, y = .25,
+    label = "t == frac(bar(X) - mu, s / sqrt(n))",
+    parse = TRUE,
+    size = 8, 
+    color = "#2F2E4E") + 
+  
+  labs(x = "t-score", y = "") +
+  
+  scale_color_scico_d(palette = "tokyo", 
+                      direction = 1) +
+  theme_minimal() +
+  
+  theme(legend.title = element_blank(),
+        axis.text = element_text(face = "bold", size = 14))
+
+```
+
+------------------------------------------------------------------------
+
+### Decisión entre $Z$ y $t$
+
+```{dot}
+digraph{
+    bgcolor = transparent;
+    rankdir = LR;
+    
+    node[shape = box,
+    style = filled,
+    fontname = "Calibri:bold",
+    fontcolor = white,
+    fontsize = 9];
+    
+    edge[fontname = "Calibri:bold"]
+    
+    Inicio[color = "#1B0D33",
+    shape = diamond];
+
+    n0[color = "#443766",
+    label = "conoce &sigma;"];
+    
+    n1[color = "#562948", 
+    label = "Población distribuida \n normalmente"];
+    
+    n2[color = "#81A95E", 
+    label = "Población distribuida \n normalmente",
+    fontcolor = "black"];
+    
+   n3[color = "#6E4E4F",
+    label = "Distribución normal"];
+    
+    n4 [color = "#767D55",
+    label = "n>30"];
+    
+    n5[color = "#767D55",
+    label = "Métodos no \n paramétricos o \n bootstrap"];
+    
+    n6[color = "#AEE296",
+    label = "Distribución t de Student",
+    fontcolor = "black"];
+    
+    #n7[color = "#8E638D",
+    #label = "n>30"];
+    
+    Inicio -> n0 
+    n0 -> n1 [label = "Sí"]
+    n0 -> n2 [label = "No"]
+    
+    n1 -> n3 [label = "Sí"]
+    n1 -> n4 [label = "No"]
+    
+    n4 -> n3 [label = "Sí"]
+    n4 -> n5 [label = "No"]
+    
+    n2 -> n6 [label = "Sí"]
+    n2 -> n4 [label = "No"]
+    
+    n4 -> n6 [label = "Sí"]
+    
+}
+```
+
+------------------------------------------------------------------------
+
+#### Distribución Chi-cuadrado ($\chi^2$)
+
+-   Solo puede tomar valores de cero o positivos.
+
+-   Es sesgada y asimétrica.
+
+-   Se acerca a la simetría a medida que aumentan los grados de libertad.
+
+-   Es diferente para cada número de grados de libertad.
+
+------------------------------------------------------------------------
+
+#### Distribución Chi-cuadrado ($\chi^2$)
+
+```{r}
+# datos
+tibble(x = rchisq(100, df = 5)) |> 
+  
+# plot
+ggplot(aes(x = x)) +
+  
+  geom_function(aes(colour = "df = 2"), 
+                fun = dchisq, 
+                args = list(df = 2), 
+                size = 1.5) +
+  
+  geom_function(aes(colour = "df = 5"), 
+                fun = dchisq, 
+                args = list(df = 5), 
+                size = 1.5) +
+  
+  geom_function(aes(colour = "df = 10"), 
+                fun = dchisq,
+                args = list(df = 10), 
+                size = 1.5) +
+  
+  # Anotación de la fórmula del estadístico chi-cuadrado
+  annotate(
+    "text", x = 20, y = 0.3,
+    label = "chi^2 == frac((n - 1) * s^2, sigma^2)",
+    parse = TRUE,
+    size = 6, 
+    color = "#2F2E4E"
+  ) + 
+  
+  # Paleta de colores y etiquetas del gráfico
+  scale_color_scico_d(palette = "tokyo", direction = -1) +
+  
+  labs(y = "Densidad", x = "Valor de Chi-cuadrado") +
+  
+  theme_minimal() + 
+  theme(
+    legend.title = element_blank(),
+    axis.text = element_text(face = "bold", size = 12)
+  )
+```
+
+------------------------------------------------------------------------
+
+### Estimación de parámetros
+
+-   Al momento de interpretar los resultados de un estudio, lo hacemos mediante los valores que obtuvimos de nuestra muestra (**estimador puntual**).
+
+-   Si se repitiera el estudio con una muestra diferente, nuestro estimador puntual podría variar.
+
+------------------------------------------------------------------------
+
+### Intervalo de confianza
+
+-   Rango de valores, normalmente distribuidos, en el cual se encuentra el **valor real** de un estimador para la población.
+
+-   Describe la variabilidad que existe entre los resultados obtenidos de un estudio y la medida real en la población objetivo.
+
+-   Por consenso, se utiliza un **nivel de confianza** del 95%:
+
+    $$
+    95\% IC = (\bar{x}  -1.96 SE, \bar{x} + 1.96 SE)
+    $$
+
+-   Donde:
+
+    -   $\bar{x}$ es el estimador puntual
+
+    -   $SE$ es el error estándar
+
+------------------------------------------------------------------------
+
+## Nivel de confianza ($1-\alpha$)
+
+-   Probabilidad *a priori* de que el IC a calcular contenga al verdadero valor del parámetro.
+
+-   A mayor nivel de confianza, **más estrecho será el intervalo** de confianza (IC) y mayor el tamaño de muestra requerido.
+
+-   Si bien existen ICs del 90% o 99%, el 95% de confianza representa un equilibrio entre el ancho del intervalo (precisión) y el tamaño muestral.
+
+------------------------------------------------------------------------
+
+### Ejemplo
+
+-   Datos muestrales de 280 ensayos de terapias alternativas; en el 44% de ellos se registró éxito terapéutico (95% IC: 38,1, 49,7%).
+
+-   Interpretación:
+
+    -   Tenemos una confianza del 95% de que el intervalo de 38,1% a 49,7% realmente contiene el valor verdadero.
+
+    -   Si seleccionamos muchas muestras diferentes de tamaño 280 y construimos los IC, el 95% de ellos incluirían el valor de la proporción poblacional.
+
+------------------------------------------------------------------------
+
+### Tests de hipótesis
+
+-   Procedimiento estándar para probar una afirmación acerca de una propiedad de la población.
+
+-   Se diferencian dos tipos de hipótesis:
+
+    -   Hipótesis de investigación: Supuesto o conjetura que motiva la investigación.
+
+    -   Hipótesis estadística: afirmación acerca de una o más propiedades de la población objetivo.
+
+------------------------------------------------------------------------
+
+#### Regla del suceso infrecuente
+
+-   Si, bajo un supuesto dado, la probabilidad de un suceso observado particular es excepcionalmente pequeña, concluimos que el supuesto **probablemente es incorrecto**.
+
+-   Sirve para diferenciar entre resultados que pueden ocurrir **por azar** y aquellos que es altamente **improbable que ocurran por azar**.
+
+------------------------------------------------------------------------
+
+#### Tipos de hipótesis estadística
+
+-   **Hipótesis nula (**$H_0$)**:**
+
+    -   Postula que el valor de un parámetro poblacional es igual a un valor aseverado y no existen diferencias entre los grupos que queremos comparar.
+
+    -   Se rechaza o acepta en forma directa.
+
+-   **Hipótesis alternativa (**$H_1$)**:**
+
+    -   Postula que existen diferencias entre los grupos que queremos comparar.
+
+    -   No se acepta o rechaza directamente sino a través de $H_0$.
+
+------------------------------------------------------------------------
+
+![Fuente: Triola (2009). Estadística. Pearson Educación de México. 914 pp.](images/clipboard-2144244516.png){style="text-align:center;" fig-align="center"}
+
+------------------------------------------------------------------------
+
+#### Estadístico de prueba
+
+-   Valor que se utiliza para tomar la decisión sobre la hipótesis nula.
+
+-   Se calcula convirtiendo al estadístico muestral en una puntuación (como z, t o ꭕ2), bajo el supuesto de que la hipótesis nula es verdadera.
+
+-   Existen distintos estadísticos de prueba según comparemos proporciones, medias o desvíos estándar.
+
+------------------------------------------------------------------------
+
+::: {style="font-size: 0.75em;"}
+|  |  |  |
+|--------------------|---------------------------------|--------------------|
+| **Proporciones** | $$
+Z = \frac{\bar{p}-p}{\sqrt(pq)-n}
+$$ |  |
+| **Medias** | $$
+Z = \frac{\bar{x}-\mu}{\sigma/\sqrt{n}}
+$$ | $$
+t = p - \frac{\bar x- \mu}{s/ \sqrt(n)}
+$$ |
+| **Desvíos estándar** | $$
+\chi^2 = \frac{(n - 1)s^2}{\sigma^2}
+$$ |  |
+
+: **Estadísticos de prueba**
+:::
+
+------------------------------------------------------------------------
+
+#### Valor crítico
+
+-   Se conoce como **región crítica** o región de rechazo al conjunto de valores del estadístico de prueba que pueden llevar a rechazar $H_0$.
+
+-   El **nivel de significancia** ($\alpha$) es la probabilidad de que el estadístico de prueba caiga en la región crítica cuando $H_0$ es verdadera (**Error tipo I**).
+
+-   El **valor crítico** es aquel que separa la región crítica de los valores que no rechazan la $H_0$.
+
+------------------------------------------------------------------------
+
+#### Test de hipótesis de dos colas
+
+```{r}
+## Define región crítica
+crit_n <- limitRange <- function(fun, min, max) {
+  function(x) {
+    y <- fun(x)
+    y[x < min  |  x > max] <- NA
+    return(y)
+  }}
+
+## Región crítica test 2 colas
+# datos
+tibble(x = c(-4, 4)) |> 
+
+  # plot  
+ggplot(mapping = aes(x = x)) +
+  
+  # curva normal
+  stat_function(fun = dnorm, linewidth = 1) +
+  
+  # sombreado
+  stat_function(fun = crit_n(dnorm, min = -1.96, max = 1.96),
+    geom = "area", 
+    fill = "#2F2E4E", 
+    alpha = 0.4) +
+  
+  stat_function(fun = crit_n(dnorm, min = -Inf, max = -1.96), 
+                geom = "area", 
+                fill = "#89606eff", 
+                alpha = 0.7) +
+  
+  stat_function(fun = crit_n(dnorm, min = 1.96, max = Inf), 
+                geom = "area", 
+                fill = "#89606eff", 
+                alpha = 0.7) +
+  
+  # Región crítica
+  annotate(geom = "text", 
+           label = paste0('alpha',"==", .025), 
+           parse = T, 
+           x = -3, y = .1) +
+  
+  annotate(geom = "text", 
+           label = paste0('alpha',"==", .025), 
+           parse = T,
+           x = 3, y = .1) +
+  
+  # Hipótesis
+  annotate(geom = "text", 
+           label = paste0("H0:",'mu',"==", 'kappa'), 
+           parse = T, 
+           x = 0, y = .45) +
+  
+  annotate(geom = "text", 
+           label = paste0("H1:",'mu',"!=", 'kappa'), 
+           parse = T, 
+           x = 0, y = .43) +
+  
+  # Líneas región crítica
+  geom_vline(xintercept = -1.96, lty = 2) +
+  
+  geom_vline(xintercept = 1.96, lty = 2) +
+  
+  scale_x_continuous(breaks = c(-Inf, -1.96, 0, 1.96, Inf)) +
+  
+  # Títulos
+  labs(x = "Z-score", 
+       y = ""
+       ) +
+  
+  theme_minimal() + 
+  theme(axis.text = element_text(face = "bold", size = 12))
+```
+
+------------------------------------------------------------------------
+
+#### Test de hipótesis de una cola
+
+```{r}
+# Región crítica izquierda
+g1 <- tibble(x = c(-4, 4)) |> 
+  
+  ggplot(mapping = aes(x = x)) +
+  
+  # Curva normal
+  stat_function(fun = dnorm, size = 1) +
+  
+  # Sombreado
+  stat_function(fun = crit_n(dnorm, min = -1.645, max = Inf),
+                geom = "area", 
+                fill = "#2F2E4E", alpha = 0.4) +
+  
+  stat_function(fun = crit_n(dnorm, min = -Inf, max = -1.645), 
+                geom = "area", 
+                fill = "#89606eff", alpha = 0.7) +
+  
+  # Región crítica
+  annotate(geom = "text", 
+           label = paste0('alpha',"==", .05), 
+           parse = T, x = -3, y = .1) +
+  
+  # Hipótesis
+  annotate(geom = "text", 
+           label = paste0("H0:",'mu',">=", 'kappa'), 
+           parse = T, x = 0, y = .45) +
+  
+  annotate(geom = "text", 
+           label = paste0("H1:",'mu',"<", 'kappa'), 
+           parse = T, x = 0, y = .43) +
+  
+  # Líneas región crítica
+  geom_vline(xintercept = -1.645, lty = 2) +
+  scale_x_continuous(breaks = c(-Inf, -1.645, 0, Inf)) +
+  
+  # Títulos
+  labs(x = "Z-score", y = "", 
+       title = "Test de hipótesis de una cola (izquierda)") +
+  theme_minimal() + 
+  theme(axis.text = element_text(face = "bold", size = 12))
+
+# Región crítica derecha
+g2 <- tibble(x = c(-4, 4)) |> 
+  
+  ggplot(mapping = aes(x = x)) +
+  
+  # Curva normal
+  stat_function(fun = dnorm, size = 1) +
+  
+  # Sombreado
+  stat_function(fun = crit_n(dnorm, min = -Inf, max = 1.645),
+                geom = "area",
+                fill = "#2F2E4E", alpha = 0.4) +
+  
+  stat_function(fun = crit_n(dnorm, min = 1.645, max = Inf), 
+                geom = "area", 
+                fill = "#89606e", alpha = 0.7) +
+  
+  # Región crítica
+  annotate(geom = "text", 
+           label = paste0('alpha',"==", .05), 
+           parse = T, 
+           x = 3, y = .1) +
+  
+  # Hipótesis
+  annotate(geom = "text", 
+           label = paste0("H0:",'mu',"<=", 'kappa'), parse = T, x = 0, y = .45) +
+  annotate(geom = "text", 
+           label = paste0("H1:",'mu',">", 'kappa'), 
+           parse = T, 
+           x = 0, y = .43) +
+  
+  # Líneas región crítica
+  geom_vline(xintercept = 1.645, lty = 2) +
+  
+  scale_x_continuous(breaks = c(-Inf, 0, 1.645, Inf)) +
+  
+  # Títulos
+  labs(x = "Z-score", y = "", 
+       title = "Test de hipótesis de una cola (derecha)") +
+  
+  theme_minimal() + 
+  
+  theme(axis.text = element_text(face = "bold", size = 12))
+
+# Une gráficos 
+g1 + g2
+```
+
+------------------------------------------------------------------------
+
+#### *p*-valor
+
+-   Mínimo valor de significancia ($\alpha$) por el cual $H_0$ se puede rechazar.
+
+-   Regla de decisión:
+
+    -   Se rechaza $H_0$:
+
+        $p \leq \alpha$
+
+    -   No se rechaza $H_0$:
+
+        $p > \alpha$
+
+------------------------------------------------------------------------
+
+#### Potencia estadística
+
+-   Es la probabilidad de **rechazar una** $H_0$ **falsa** o de aceptar $H_1$ cuando es verdadera.
+
+-   Se calcula como 1 - la probabilidad de aceptar la $H_0$ cuando es falsa (**error tipo II** o $\beta$).
+
+-   Es directamente proporcional al **tamaño muestral** e inversamente proporcional a la **varianza** de las observaciones individuales.
+
+------------------------------------------------------------------------
+
+#### En resumen...
+
+|  |  |  |
+|------------------------|------------------------|------------------------|
+|  | $H_0$ es verdadera | $H_0$ es falsa |
+| Rechazo $H_0$ | **Error tipo I (**$\alpha$**)** | Decisión correcta ($1-\alpha$) |
+| No rechazo $H_0$ | Decisión correcta ($1-\beta$) | **Error tipo II (**$\beta$**)** |
+
+------------------------------------------------------------------------
+
+#### Etapas de la investigación estadística
+
+```{dot}
+digraph{
+    node[style = filled,
+    shape = cds,
+    fontname = "Calibri:bold"]
+    rankdir = LR;
+    
+    n6 [label = 6,
+    color = "#AEE296"]
+    
+    n5 [label = 5,
+    color = "#81A95E"]
+    
+    n4 [label = 4,
+    color = "#767D55" ]
+    
+    n3 [label = 3,
+    color = "#6E4E4F",
+    fontcolor = "white"]
+    
+    n2 [label = 2,
+    color = "#562948",
+    fontcolor = "white"]
+    
+    n1 [label = 1,
+    color = "#1B0D33",
+    fontcolor = "white"]
+    
+    a[style = wedged,
+    shape = rectangle,
+    color = "#1B0D33",
+    label = "Revisión de hechos",
+    fontsize = 8]
+    
+    b[style= wedged,
+    shape = rectangle,
+    color = "#562948",
+    label = "Registro de datos",
+    fontsize = 8]
+    
+    c[style= wedged,
+    shape = rectangle,
+    color = "#6E4E4F",
+    label = "Formulación de \n hipótesis",
+    fontsize = 8]
+    
+    d[style= wedged,
+    shape = rectangle,
+    color = "#767D55",
+    label = "Análisis de datos",
+    fontsize = 8]
+    
+    e[style= wedged,
+    shape = rectangle,
+    color = "#81A95E",
+    label = "Test de hipótesis",
+    fontsize = 8]
+    
+    f[style= wedged,
+    shape = rectangle,
+    color = "#AEE296",
+    label = "Inferencia",
+    fontsize = 8]
+    
+    n1 -> a [color = "#1B0D33"]
+    n2 -> b [color = "#562948"]
+    n3 -> c [color = "#6E4E4F"]
+    n4 -> d [color = "#767D55"]
+    n5 -> e [color = "#81A95E"]
+    n6 -> f [color = "#AEE296"]
+}
+```
